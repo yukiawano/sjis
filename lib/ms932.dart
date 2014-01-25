@@ -1,8 +1,7 @@
 part of sjis;
 
 /**
- * MS932 is an extension of SJIS. Code units of 6 characters are different from SJIS.
- * Reference: http://www2d.biglobe.ne.jp/~msyk/cgi-bin/charcode/59.html
+ * MS932 is an extension of SJIS.
  */
 class MS932Codec extends Encoding {
   const MS932Codec();

@@ -3,7 +3,7 @@
  * 
  * SjisEncoder and SjisDecoders are extended to implement MS932 d/encoder.
  * Thus they clone the sjis_utf table in constructors of them.
- * Because they're going to patch these table in constructors of MS932 d/encoder.
+ * Because they patches these table in constructors of MS932 d/encoder.
  */
 library sjis;
 
