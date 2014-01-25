@@ -1,7 +1,7 @@
 name: sjis
-version: 0.1.0
+version: 0.2.0
 description: Converter for SJIS(shift_jis)
 author: Yuki Awano <y.a.unix@gmail.com>
 homepage: http://www.yaunix.com/
 dependencies:
-  unittest: any
+  unittest: ">=0.9.3 <0.9.4"
