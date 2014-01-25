@@ -1,4 +1,4 @@
 #!/bin/bash
 
 set -e
-dart --enable-type-checks --enable-asserts test/sjis_test.dart
+dart --enable-type-checks --enable-asserts sjis_test.dart
