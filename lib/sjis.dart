@@ -1,6 +1,6 @@
 /**
  * Converters for SJIS(shift_jis)
- * 
+ *
  * SjisEncoder and SjisDecoders are extended to implement MS932 d/encoder.
  * Thus they clone the sjis_utf table in constructors of them.
  * Because they patches these table in constructors of MS932 d/encoder.
@@ -23,9 +23,9 @@ const MS932Codec MS932 = const MS932Codec();
  */
 class SjisCodec extends Encoding {
   const SjisCodec();
-  
+
   String get name => "shift_jis";
-  
+
   Converter<String, List<int>> get encoder => new SjisEncoder();
   Converter<List<int>, String> get decoder => new SjisDecoder();
 }
@@ -34,24 +34,24 @@ class SjisCodec extends Encoding {
  * This class converts Strings to their SJIS code units.
  */
 class SjisEncoder extends Converter<String,List<int>> {
-  static var _instance = null;
+  static var _instance;
   final Map<int,int> utf_sjis = new Map(); // utf_sjis is generated at constructor of SjisEncoder.
-  
+
   factory SjisEncoder() {
     if(_instance == null) _instance = new SjisEncoder._internal();
     return _instance;
   }
-  
+
   SjisEncoder._internal() {
     g_sjis_utf.keys.forEach((k) {
       utf_sjis[g_sjis_utf[k]] = k;
     });
   }
-  
+
   @override
   List<int> convert(String input) {
-    var sjisCodeUnits = [];
-    
+    var sjisCodeUnits = <int>[];
+
     input.runes.forEach((codeUnit) {
       if(utf_sjis.containsKey(codeUnit)) {
         int sjisCodeUnit = utf_sjis[codeUnit];
@@ -66,10 +66,10 @@ class SjisEncoder extends Converter<String,List<int>> {
             "Couldn't find corresponding code to U+${codeUnit.toRadixString(16)}");
       }
     });
-    
+
     return sjisCodeUnits;
   }
-  
+
   // Override the base-classes bind, to provide a better type.
   Stream<List<int>> bind(Stream<String> stream) => super.bind(stream);
 }
@@ -79,21 +79,21 @@ class SjisEncoder extends Converter<String,List<int>> {
  */
 class SjisDecoder extends Converter<List<int>, String> {
   final sjis_utf = new Map<int,int>();
-  static var _instance = null;
-  
+  static var _instance;
+
   factory SjisDecoder() {
     if(_instance == null) _instance = new SjisDecoder._internal();
     return _instance;
   }
-  
+
   SjisDecoder._internal() {
     sjis_utf.addAll(g_sjis_utf);
   }
-  
+
   @override
   String convert(List<int> input) {
     var stringBuffer = new StringBuffer();
-    
+
     addToBuffer(var charCode) {
       if(sjis_utf.containsKey(charCode)) {
         stringBuffer.writeCharCode(sjis_utf[charCode]);
@@ -101,25 +101,25 @@ class SjisDecoder extends Converter<List<int>, String> {
         throw new FormatException("Bad encoding 0x${charCode.toRadixString(16)}"); 
       }
     };
-    
+
     for(int i = 0; i < input.length; i++) {
       var byte = input[i];
-      
+
       if(g_double_bytes.contains(byte)) {
         // Double byte char
         i++;
-        
+
         if(i >= input.length) {
           throw new FormatException("Bad encoding 0x${byte.toRadixString(16)}");
         }
-        
+
         var doubleBytes = (byte << 8) + input[i];
         addToBuffer(doubleBytes);
       } else {
         addToBuffer(byte);
       }
     }
-      
+
     return stringBuffer.toString();
   }
   
