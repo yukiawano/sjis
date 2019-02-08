@@ -1,7 +1,9 @@
 name: sjis
+environment:
+  sdk: ">=2.0.0-dev.68.0 <3.0.0"
 version: 0.2.0
 description: Converter for SJIS(shift_jis)
 author: Yuki Awano <y.a.unix@gmail.com>
 homepage: http://www.yaunix.com/
 dependencies:
-  unittest: ">=0.9.3 <0.9.4"
+  test: ^1.5.3

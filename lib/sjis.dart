@@ -78,51 +78,76 @@ class SjisEncoder extends Converter<String,List<int>> {
  * This class converts SJIS code units to a string.
  */
 class SjisDecoder extends Converter<List<int>, String> {
-  final sjis_utf = new Map<int,int>();
-  static var _instance = null;
-  
-  factory SjisDecoder() {
-    if(_instance == null) _instance = new SjisDecoder._internal();
-    return _instance;
-  }
-  
-  SjisDecoder._internal() {
-    sjis_utf.addAll(g_sjis_utf);
-  }
-  
+  final Map<int, int> sjis_utf;
+
+  SjisDecoder([this.sjis_utf = g_sjis_utf]);
+
   @override
   String convert(List<int> input) {
-    var stringBuffer = new StringBuffer();
-    
-    addToBuffer(var charCode) {
-      if(sjis_utf.containsKey(charCode)) {
-        stringBuffer.writeCharCode(sjis_utf[charCode]);
-      } else {
-        throw new FormatException("Bad encoding 0x${charCode.toRadixString(16)}"); 
-      }
-    };
-    
-    for(int i = 0; i < input.length; i++) {
-      var byte = input[i];
-      
-      if(g_double_bytes.contains(byte)) {
-        // Double byte char
-        i++;
-        
-        if(i >= input.length) {
-          throw new FormatException("Bad encoding 0x${byte.toRadixString(16)}");
-        }
-        
-        var doubleBytes = (byte << 8) + input[i];
-        addToBuffer(doubleBytes);
-      } else {
-        addToBuffer(byte);
-      }
-    }
-      
-    return stringBuffer.toString();
+    var buffer = new StringBuffer();
+    var unfinishedByte = _decode(input, buffer);
+    if (unfinishedByte != null)
+      throw new FormatException("Bad encoding 0x${unfinishedByte.toRadixString(16)}");
+    return buffer.toString();
+  }
+
+  @override
+  ByteConversionSink startChunkedConversion(Sink<String> sink) {
+    return SjisDecoderSink(sink is StringConversionSink ? sink : StringConversionSink.from(sink));
   }
   
   // Override the base-classes bind, to provide a better type.
   Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
+}
+
+class SjisDecoderSink extends ByteConversionSinkBase {
+  Sink<String> _output;
+  int _unfinishedByte;
+
+  SjisDecoderSink(this._output);
+
+  @override
+  void add(List<int> chunk) {
+    var buffer = StringBuffer();
+    _unfinishedByte = _decode(chunk, buffer, _unfinishedByte);
+    _output.add(buffer.toString());
+  }
+
+  @override
+  void close() {
+    if (_unfinishedByte != null)
+      throw new FormatException("Bad encoding 0x${_unfinishedByte.toRadixString(16)}");
+    _output.close();
+  }
+}
+
+int _decode(List<int> input, StringBuffer buffer, [int unfinishedByte]) {
+  
+  addToBuffer(var charCode) {
+    if(g_sjis_utf.containsKey(charCode)) {
+      buffer.writeCharCode(g_sjis_utf[charCode]);
+    } else {
+      throw new FormatException("Bad encoding 0x${charCode.toRadixString(16)}"); 
+    }
+  };
+  
+  for(int i = unfinishedByte != null ? -1 : 0; i < input.length; i++) {
+    var byte = i == -1 ? unfinishedByte : input[i];
+    
+    if(g_double_bytes.contains(byte)) {
+      // Double byte char
+      i++;
+      
+      if(i >= input.length) {
+        return byte;
+      }
+      
+      var doubleBytes = (byte << 8) + input[i];
+      addToBuffer(doubleBytes);
+    } else {
+      addToBuffer(byte);
+    }
+  }
+    
+  return null;
 }
