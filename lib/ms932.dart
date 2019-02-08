@@ -32,14 +32,5 @@ class MS932Encoder extends SjisEncoder {
  * This class converts MS932 code units to a string.
  */
 class MS932Decoder extends SjisDecoder {
-  static var _instance = null;
-  
-  factory MS932Decoder() {
-    if(_instance == null) _instance = new MS932Decoder._internal();
-    return _instance;
-  }
-  
-  MS932Decoder._internal(): super._internal() {
-    sjis_utf.addAll(g_ms932_utf);
-  }
+  MS932Decoder() : super(g_ms932_utf);
 }
